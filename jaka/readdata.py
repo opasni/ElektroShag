@@ -8,7 +8,7 @@ import re
 
 arr = []
 
-sim = 17
+sim = 3
 
 with open("../Data/Simul/Sim" + str(sim) + ".csv") as dat_f:
     reader = csv.DictReader(dat_f, delimiter=";")
