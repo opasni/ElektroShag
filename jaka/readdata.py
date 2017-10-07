@@ -3,10 +3,12 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 from datetime import datetime
 import numpy as np
+import re
+
 
 arr = []
 
-with open("../data/Example_5B.csv") as dat_f:
+with open("../Data/Simul/Sim12.csv") as dat_f:
     reader = csv.DictReader(dat_f, delimiter=";")
     for row in reader:
         arr.append(row)
@@ -26,8 +28,11 @@ for line in arr:
 
 # plt.format_xdata = mdates.DateFormatter('%Y-%m-%d %h-%m-%s.%')
 
-#plt_keys = ["N1_i1", "N1_i3", "N4_i2"]
-plt_keys = reader.fieldnames[1:16] #dialect["N1_i1", "N1_i3", "N4_i2"]
+# plt_keys = ["N1_au", "N2_au", "N10_au", "N15_au"]
+
+reg = re.compile("N.*_au")
+plt_keys = list(filter(r.match, data.keys()))
+
 for key in plt_keys:
     plt.plot_date(data['Time'], data[key]/np.amax(data[key]), '-', label=key)
 
