@@ -2,6 +2,7 @@ import csv
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 from datetime import datetime
+import numpy as np
 
 arr = []
 
@@ -25,9 +26,10 @@ for line in arr:
 
 # plt.format_xdata = mdates.DateFormatter('%Y-%m-%d %h-%m-%s.%')
 
-plt_keys = ["N1_i1", "N1_i3", "N4_i2"]
+#plt_keys = ["N1_i1", "N1_i3", "N4_i2"]
+plt_keys = reader.fieldnames[1:16] #dialect["N1_i1", "N1_i3", "N4_i2"]
 for key in plt_keys:
-    plt.plot_date(data['Time'], data[key], label=key)
+    plt.plot_date(data['Time'], data[key]/np.amax(data[key]), '-', label=key)
 
 plt.legend()
 plt.show()
