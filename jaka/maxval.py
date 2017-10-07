@@ -6,6 +6,18 @@ import numpy as np
 import re
 
 
+def get_max_vals(data, vzorec, N=14):
+    reg = re.compile(vzorec)
+
+    plt_keys = list(filter(reg.match, data.keys()))
+
+    d = sorted([[key, np.amax(np.fabs(data[key][10:]-np.average(data[key][10:50])))] for key in plt_keys],
+           key=lambda v: -v[1])
+    keys = [x[0] for x in d[:N]]
+
+    vals = [x[1] for x in d[:N]] # np.ndarray([x[1] for x in d[:5]], dtype=np.float64)
+    return keys,vals
+
 
 arr = []
 
@@ -28,23 +40,16 @@ for i,line in enumerate(arr):
             data[key][i] = float(line[key])
 
 
-
-
 # plt.format_xdata = mdates.DateFormatter('%Y-%m-%d %h-%m-%s.%')
 
 # plt_keys = ["N1_au", "N2_au", "N10_au", "N15_au"]
 
-
 # regex_vzorec = ["N.*_u", "N.*_au", "N.*_r", "N.*_P.*", "N.*_Q.*"]
-regex_vzorec = ["N.*_u"]
 # regex_vzorec = ["N.*_u", "N.*_au", "N.*_i.*", "N.*_ai.*", "N.*_P.*", "N.*_Q.*", "N.*_f", "N.*_r"]
-for i, vzorec in enumerate(regex_vzorec):
-    reg = re.compile(vzorec)
 
-    plt_keys = list(filter(reg.match, data.keys()))
-    plt.figure(i)
-    for key in plt_keys:
-        plt.plot_date(time_arr, (data[key]-data[key][10])/np.amax(data[key]), '-', label=key)
+keys, data = get_max_vals(data, "N.*_u")
+plt.bar(range(len(data)), data)
+plt.xticks(range(len(data)), keys, rotation=40)
 
-    plt.legend()
+
 plt.show()
