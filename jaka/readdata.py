@@ -15,15 +15,16 @@ with open("../Data/Simul/Sim1.csv") as dat_f:
 
 
 data = dict()
+time_arr = []
 for key in arr[0]:
-     data[key] = []
+     data[key] = np.zeros(len(arr))
 
-for line in arr:
+for i,line in enumerate(arr):
     for key in arr[0]:
         if key == 'Time':
-            data[key].append(datetime.strptime(line[key], '%Y-%m-%d %H:%M:%S.%f'))
+            time_arr.append(datetime.strptime(line[key], '%Y-%m-%d %H:%M:%S.%f'))
         else:
-            data[key].append(float(line[key]))
+            data[key][i] = float(line[key])
 
 
 # plt.format_xdata = mdates.DateFormatter('%Y-%m-%d %h-%m-%s.%')
@@ -39,7 +40,7 @@ for i, vzorec in enumerate(regex_vzorec):
     plt_keys = list(filter(reg.match, data.keys()))
     plt.figure(i)
     for key in plt_keys:
-        plt.plot_date(data['Time'], (data[key]-data[key][10])/np.amax(data[key]), '-', label=key)
+        plt.plot_date(time_arr, (data[key]-data[key][10])/np.amax(data[key]), '-', label=key)
 
     plt.legend()
 plt.show()
