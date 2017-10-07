@@ -1,0 +1,11 @@
+import csv
+
+def branje(x):
+    arr = []
+
+    with open("../Data/Simul/Sim18.csv") as dat_f:
+        reader = csv.DictReader(dat_f, delimiter=";")
+        for row in reader:
+            arr.append(row)
+
+    return arr
