@@ -6,6 +6,7 @@ import numpy as np
 import re
 
 
+
 arr = []
 
 with open("../Data/Simul/Sim1.csv") as dat_f:
@@ -27,12 +28,15 @@ for i,line in enumerate(arr):
             data[key][i] = float(line[key])
 
 
+
+
 # plt.format_xdata = mdates.DateFormatter('%Y-%m-%d %h-%m-%s.%')
 
 # plt_keys = ["N1_au", "N2_au", "N10_au", "N15_au"]
 
 
-regex_vzorec = ["N.*_u", "N.*_au", "N.*_r", "N.*_P.*", "N.*_Q.*"]
+# regex_vzorec = ["N.*_u", "N.*_au", "N.*_r", "N.*_P.*", "N.*_Q.*"]
+regex_vzorec = ["N.*_u"]
 # regex_vzorec = ["N.*_u", "N.*_au", "N.*_i.*", "N.*_ai.*", "N.*_P.*", "N.*_Q.*", "N.*_f", "N.*_r"]
 for i, vzorec in enumerate(regex_vzorec):
     reg = re.compile(vzorec)
