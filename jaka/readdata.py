@@ -30,13 +30,13 @@ for line in arr:
 
 # plt_keys = ["N1_au", "N2_au", "N10_au", "N15_au"]
 
-
+dataN = np.asarray(data)
 regex_vzorec = ["N.*_u", "N.*_au", "N.*_r", "N.*_P.*", "N.*_Q.*"]
 # regex_vzorec = ["N.*_u", "N.*_au", "N.*_i.*", "N.*_ai.*", "N.*_P.*", "N.*_Q.*", "N.*_f", "N.*_r"]
 for i, vzorec in enumerate(regex_vzorec):
     reg = re.compile(vzorec)
 
-    plt_keys = list(filter(reg.match, data.keys()))
+    plt_keys = list(filter(reg.match, dataN.keys()))
     plt.figure(i)
     for key in plt_keys:
         plt.plot_date(data['Time'], (data[key]-data[key][10])/np.amax(data[key]), '-', label=key)
