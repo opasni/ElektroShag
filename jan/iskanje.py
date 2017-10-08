@@ -68,14 +68,14 @@ class iskanje():
             if key not in self.data:
                 self.data[key] = []
             self.data[key].append(x[key])
-            if self.deriv == False:
-                regex_vzorec = ["N.*_f"]
-                for i, vzorec in enumerate(regex_vzorec):
-                    reg = re.compile(vzorec)
-                    keys = list(filter(reg.match, self.data.keys()))
-                    for key in keys:
-                        self.vsota += deriv3(self.data[key][-3], self.data[key][-1])
-                    self.frekvenca.append(self.vsota)
+        if self.deriv == False:
+            regex_vzorec = ["N.*_f"]
+            for i, vzorec in enumerate(regex_vzorec):
+                reg = re.compile(vzorec)
+                keys = list(filter(reg.match, self.data.keys()))
+                for key in keys:
+                    self.vsota += deriv3(self.data[key][-3], self.data[key][-1])
+                self.frekvenca.append(self.vsota)
 
         # sesteje odvode frekvence na vseh node-ih
         regex_vzorec = ["N.*_r"]
