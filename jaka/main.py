@@ -25,18 +25,18 @@ def is_short_circut(test_data, center_cut=5):
     return max_diff < 0.5
 
 
-reg_r = re.compile("N.*_r")
+reg_r = re.compile("N.*_f")
 reg_P = re.compile("N.*_P")
 
 sim = 5
-# datafile = "../Data/Simul/Sim5.csv"
-datafile = "../Data/Real/RealMeasurement2.csv"
+datafile = "../Data/Simul/Sim4.csv"
+# datafile = "../Data/Real/RealMeasurement9.csv"
 data = dict()
 
 with open(datafile) as dat_f:
     reader = csv.DictReader(dat_f, delimiter=";")
 
-    iskalnik = iskanje(deriv=True, tol=100)
+    iskalnik = iskanje(deriv=False, tol=20)
     next(reader)
     next(reader)
     next(reader)

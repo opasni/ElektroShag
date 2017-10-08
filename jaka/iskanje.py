@@ -72,7 +72,10 @@ class iskanje():
             if key == "Time":
                 self.data[key].append(datetime.strptime(x[key], '%Y-%m-%d %H:%M:%S.%f'))
             else:
-                self.data[key].append(float(x[key]))
+                try:
+                    self.data[key].append(float(x[key]))
+                except:
+                    self.data[key].append(np.NaN)
         # odvaja frekvenco, ce ni v podatkih
         if self.deriv is False and len(self.data['Time']) >= 3:
             regex_vzorec = ["N.*_f"]
