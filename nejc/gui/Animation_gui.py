@@ -24,6 +24,10 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
 
+#jakas imports
+from datetime import datetime
+from iskanje import iskanje
+import re
 
 
 #colorbrewer nice plot colot set
@@ -55,7 +59,9 @@ class Frame_plots(tk.Frame):
         #initiate plots
         self.Initiate_plots()
 
-        self.test_row = Test_row()
+        self.test_row = Generator_row()
+        for i in range(99):
+            next(self.test_row)
 
         #loop variable
         self.run = tk.BooleanVar(master=self, value=False)
@@ -128,7 +134,7 @@ class Frame_plots(tk.Frame):
         #add all frequency traces
         self.axes_left_traces = dict()
         self.axes_left_vlines = []
-        n_freq = 5
+        n_freq = 120
         
         for i, key in enumerate(self.data.freq_keys):
             tmp, = self.axes_left.plot(self.data.time, self.data.freqs[key], 'bo-',
@@ -168,9 +174,9 @@ class Frame_plots(tk.Frame):
 
         #right plot   ### change into node map graphics
         self.axes_right = self.fig_right.add_subplot(111)
-        self.axes_right_green = self.axes_right.plot(node_x_green, node_y_green, 'bo',
+        self.axes_right_green, = self.axes_right.plot(node_x_green, node_y_green, 'bo',
                                                    color=colors[2], label='Working')
-        self.axes_right_red = self.axes_right.plot(node_x_red, node_y_red, 'bo',
+        self.axes_right_red, = self.axes_right.plot(node_x_red, node_y_red, 'bo',
                                                    color=colors[0], label='Event')
 
         for i, name in enumerate(node_name): 
@@ -192,7 +198,7 @@ class Frame_plots(tk.Frame):
             self.Next()
             #start a delay
             ##### figure out how to run a loop that doesnt freeze main_app!!!!
-            root.after(500)
+            root.after(1)
 
 
     def Pause(self):
@@ -204,8 +210,9 @@ class Frame_plots(tk.Frame):
 
         #testrow
 
+        row_out = next(self.test_row)
+        self.data.Append_row(row_out)
 
-        self.data.Append_row(next(self.test_row))
 
         for key in self.data.freq_keys:
             self.axes_left_traces[key].set_xdata(self.data.time)
@@ -213,10 +220,10 @@ class Frame_plots(tk.Frame):
 
         #update plot limits
         self.axes_left.relim()
+        #print(self.data.time)
         self.axes_left.autoscale_view()
         self.axes_left.set_xlim(self.data.time[0]-0.01, self.data.time[-1]+0.01)
         
-
         #add hlines for events
         if len(self.data.events) > 0:
             while len(self.data.events) > len(self.axes_left_vlines):
@@ -229,7 +236,54 @@ class Frame_plots(tk.Frame):
                 print('destroyed')
 
         for i, event in enumerate(self.data.events):
-            self.axes_left_vlines[i].set_xdata(event)
+            self.axes_left_vlines[i].set_xdata(event + 1)
+
+        ######## upgrade nodes
+
+
+        node_x_list = [0, 1.2540515319837704, 0.5288312603004189, 1.0411901607163858, 0.5457178787504438,
+                         0.5902887279491432, 0.4220574562932663, 0.2560843325238992, 0.6995186823392411,
+                         0.4900493444312738, 0.40451087449142953, 0.6059094449017457, 0.27170194401129866,
+                         0.2706088644285869, 0.7856860252817126]
+        node_y_list = [ 0, 0.6571637827807346, 0.5808117208177156, 0.7910209256532237, 0.5385482082552953,
+                          0.5732009954175707, 0.541657779723429, 0.33544637004135164, 0.5293526234142677,
+                          0.3072025303353594, 0.5220564078231058, 0.5239893971710619, 0.2370571592126064,
+                          0.236624300551497, 0.5323674295136915]
+        
+        if self.data.best_count == 0:
+            node_x_red = []
+            node_y_red = []
+            node_x_green =  []
+            node_y_green =  []
+
+
+            print('its happening', self.data.best_points)
+            
+            for i in range(len(node_x_list)):
+                if i+1 in self.data.best_points[0]:
+                    print('yay a point')
+                    node_x_red.append(node_x_list[i])
+                    node_y_red.append(node_y_list[i])
+                else:
+                    node_x_green.append(node_x_list[i])
+                    node_y_green.append(node_y_list[i])
+
+            print(node_x_green, node_x_red)
+            
+            self.axes_right_green.set_xdata(node_x_green)
+            self.axes_right_green.set_ydata(node_y_green)
+            self.axes_right_red.set_xdata(node_x_red)
+            self.axes_right_red.set_ydata(node_y_red)
+            
+            self.fig_right.canvas.draw()
+            
+        elif self.data.best_count == 99:
+            self.axes_right_green.set_xdata(node_x_list)
+            self.axes_right_green.set_ydata(node_y_list)
+            self.axes_right_red.set_xdata([])
+            self.axes_right_red.set_ydata([])
+            
+            self.fig_right.canvas.draw()
 
         
 
@@ -244,6 +298,116 @@ def Test_row():
         yield (0.02*i, np.sin(0.02*i)+ 1, np.cos(0.02*i)+ 2, event)
         i += 1
 
+def is_short_circut(test_data, center_cut=5):
+    vzorec_P = "N.*_P"
+    reg_P = re.compile(vzorec_P)
+    plt_keys_P = list(filter(reg_P.match, test_data.keys()))
+
+    max_val = 0
+    for key_P in plt_keys_P:
+        key_max = np.max([abs(x - test_data[key_P][0]) for x in test_data[key_P]])
+        max_val = max_val if key_max < max_val else key_max
+
+    max_diff = 0
+    for i, key_P in enumerate(plt_keys_P):
+        center = len(test_data[key_P])//2
+        tmp = abs(np.average(test_data[key_P][:center - center_cut]) - np.average(test_data[key_P][center + center_cut:])) / max_val
+        max_diff = max_diff if max_diff > tmp else tmp
+    
+    return max_diff < 0.5
+
+def get_number(s, vzorec):
+    if vzorec=="N.*_P":
+        return  list(map(int,re.findall(r'\d+', s)))
+    else:
+        return int(re.findall(r'\d+', s)[0])
+
+
+def get_best_bets(data):
+    sim_freq_tmp = []
+    #vzorec_all = ["N.*_P", "N.*_u", "N.*_au"]
+    #vzorec_all = ["N.*_P", "N.*_au", "N.*_i"]
+    vzorec_all = ["N.*_au"]
+    
+    for vzorec in vzorec_all:
+        reg = re.compile(vzorec)
+        plt_keys = list(filter(reg.match, data.keys()))
+        
+        freq_val = np.zeros(len(plt_keys))
+        
+        max_val = 0
+        for key in plt_keys:
+            key_max = np.max([abs(d_k - data[key][0]) for d_k in data[key]])
+            max_val = max_val if key_max < max_val else key_max
+        
+        for i, key in enumerate(plt_keys):
+            freq_val[i] = np.sum([abs(d_v - data[key][0])
+                                  for d_v in data[key][int(len(data[plt_keys[1]])/2)-3:int(len(data[plt_keys[1]])/2)+3]])/max_val
+        
+        s = sorted(zip(plt_keys, freq_val), key=lambda x:-x[1])
+        # sim_freq_tmp.append(plt_keys[np.argmax(abs(freq_val)])
+        sim_freq_tmp.append([(get_number(x[0], vzorec)) for x in s[:3]])
+    #sim_freq.append(sim_freq_tmp)
+    return(sim_freq_tmp)
+
+def Generator_row():
+    '''generates rows from real data'''
+    reg_r = re.compile("N.*_f")
+    reg_P = re.compile("N.*_P")
+
+    sim = 5
+    datafile = "../../Data/Simul/Sim4.csv"
+    # datafile = "../Data/Real/RealMeasurement9.csv"
+    data = dict()
+
+    with open(datafile) as dat_f:
+        reader = csv.DictReader(dat_f, delimiter=";")
+
+        iskalnik = iskanje(deriv=False, tol=20)
+        next(reader)
+        next(reader)
+        next(reader)
+        for row in reader:
+            data, flag = iskalnik.send_row(row)
+
+            plt_keys_r = list(filter(reg_r.match, data.keys()))
+            plt_keys_P = list(filter(reg_P.match, data.keys()))
+
+            t1 = data["Time"][0]
+            #print(t1)
+            #t1 = t1 - datetime(2017,1,1)
+            #print(t1)
+            t1 = t1.second + t1.microsecond/1000000
+            #print(t1)
+
+            if flag:
+                best_points = get_best_bets(data)
+            else:
+                best_points = False
+                
+            yield [t1] + [data[k][0] for k in plt_keys_r] + [flag] + [best_points]
+            #print(row)
+            continue
+
+ 
+##            if flag:
+##                plt.figure(1)
+##                plt.title("freq deriv")
+##                for key in plt_keys_r:
+##                    plt.plot_date(data["Time"], data[key], '-', label=key)
+##
+##                plt.figure(2)
+##                plt.title("P")
+##                for key in plt_keys_P:
+##                    plt.plot_date(data["Time"], data[key], '-', label=key)
+##
+##                plt.title(datafile)
+##                plt.legend()
+##                plt.show()
+##
+##                print("Short circut: ", is_short_circut(data))
+
+
 
 class Realtime_data():
     '''class that keeps track of the plotted data and updates it from new rows'''
@@ -252,11 +416,14 @@ class Realtime_data():
 
         #indexes / keys of data in imported row
         self.time_key = 0
-        self.freq_keys = [1, 2]
+        self.freq_keys = range(1,14)
 
         #number of points to keep in plot
-        self.n_max = 20
+        self.n_max = 120
         dt = 0.02
+
+        self.best_count = -50
+        self.counting = False
 
         #init lists of data, start with negative times for empty traces in plot
         self.time = [-self.n_max*dt + (i+1)*dt for i in range(self.n_max)]
@@ -269,9 +436,24 @@ class Realtime_data():
 
     def Append_row(self, row, event=False):
         '''reads a row and correctly adds it to current arrays'''
+        #counter for found points
+        
+        print(self.best_count, 'i', row[-1])
 
-        if type(row[-1]) == type(True):
-            event = row[-1]
+        if type(row[-2]) == type(True):
+            event = row[-2]
+
+
+        if row[-1]:
+            self.counting = True
+            self.best_points = row[-1]
+
+        if self.counting:
+            self.best_count +=1
+            if self.best_count > 100:
+                self.best_count = -50
+                self.counting = False
+            
                  
         # adds the new data to row
         self.time.append(row[self.time_key])
@@ -291,6 +473,7 @@ class Realtime_data():
             if self.events[0] <= outdate:
                 self.events.pop(0)
         except IndexError: pass
+
         
 
 ##        #in case row is full remove first entry
