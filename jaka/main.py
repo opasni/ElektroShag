@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from datetime import datetime
 import numpy as np
 import re
+from iskanje import iskanje
 
 
 def is_short_circut(test_data, center_cut=5):
@@ -12,7 +13,7 @@ def is_short_circut(test_data, center_cut=5):
 
     max_val = 0
     for key_P in plt_keys_P:
-        key_max = np.max(abs(test_data[key_P] - test_data[key_P][0]))
+        key_max = np.max([abs(x - test_data[key_P][0]) for x in test_data[key_P]])
         max_val = max_val if key_max < max_val else key_max
 
     max_diff = 0
@@ -24,29 +25,39 @@ def is_short_circut(test_data, center_cut=5):
     return max_diff < 0.5
 
 
-vzorec = "N.*_P"
-reg = re.compile(vzorec)
+reg_r = re.compile("N.*_r")
+reg_P = re.compile("N.*_P")
 
 sim = 5
-datafile = "../Data/Simul/Sim5.csv"
+# datafile = "../Data/Simul/Sim5.csv"
+datafile = "../Data/Real/RealMeasurement2.csv"
 data = dict()
+
 with open(datafile) as dat_f:
     reader = csv.DictReader(dat_f, delimiter=";")
 
-    #iskalnik = janova_koda()
+    iskalnik = iskanje(deriv=True, tol=100)
+    next(reader)
+    next(reader)
+    next(reader)
     for row in reader:
-        iskalnik.send_row(row)
-        data = next(iskalnik)
+        data, flag = iskalnik.send_row(row)
 
-        plt_keys = list(filter(reg.match, data.keys()))
-        if data != 0:
-            for key in plt_keys:
-                plt.plot_date(data["Time"], (data[key]), '-', label=key)
+        plt_keys_r = list(filter(reg_r.match, data.keys()))
+        plt_keys_P = list(filter(reg_P.match, data.keys()))
+        if flag:
+            plt.figure(1)
+            plt.title("freq deriv")
+            for key in plt_keys_r:
+                plt.plot_date(data["Time"], data[key], '-', label=key)
+
+            plt.figure(2)
+            plt.title("P")
+            for key in plt_keys_P:
+                plt.plot_date(data["Time"], data[key], '-', label=key)
 
             plt.title(datafile)
             plt.legend()
             plt.show()
 
             print("Short circut: ", is_short_circut(data))
-
-            
