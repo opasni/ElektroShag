@@ -8,7 +8,7 @@ import re
 
 arr = []
 
-sim = 7
+sim = 17
 
 with open("../Data/Simul/Sim" + str(sim) + ".csv") as dat_f:
     reader = csv.DictReader(dat_f, delimiter=";")
@@ -37,7 +37,7 @@ for i,line in enumerate(arr):
 
 
 # regex_vzorec = ["N.*_u", "N.*_au", "N.*_r", "N.*_P.*", "N.*_Q.*"]
-regex_vzorec = ["N.*_r"]
+regex_vzorec = ["N.*_P"]
 # regex_vzorec = ["N.*_u", "N.*_au", "N.*_i.*", "N.*_ai.*", "N.*_P.*", "N.*_Q.*", "N.*_f", "N.*_r"]
 for i, vzorec in enumerate(regex_vzorec):
     reg = re.compile(vzorec)
@@ -51,7 +51,7 @@ for i, vzorec in enumerate(regex_vzorec):
     plt.figure(i)
     for key in plt_keys:
         #plt.plot_date(time_arr, (data[key]-data[key][10])/max_val, '-', label=key)
-        plt.plot_date(time_arr, (data[key]) / np.average(data[key][10:500]), '-', label=key)
+        plt.plot_date(time_arr, (data[key]), '-', label=key)
         # plt.plot_date(time_arr, data[key], '-', label=key)
 
 

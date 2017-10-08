@@ -5,7 +5,7 @@ import numpy as np
 import re
 
 arr = []
-sim = 2
+sim = 17
 
 with open("../Data/Simul/Sim" + str(sim) + ".csv") as dat_f:
     reader = csv.DictReader(dat_f, delimiter=";")
@@ -50,7 +50,7 @@ full_sum = np.zeros(len(data["Time"]))
 for idx in node_dict:
     full_sum = np.add(full_sum, node_dict[idx])
 
-plt.plot_date(time_arr, full_sum, '-', linewidth=2, label="full")
+plt.plot_date(time_arr, full_sum, '-', linewidth=3, label="full")
 
 
 

@@ -25,7 +25,7 @@ for sim in range(1,24):
 
 
     for i, key in enumerate(plt_keys):
-        tmp = ((np.average(data[key][:len(data[key]) // 2 - 5]) - np.average(data[key][len(data[key]) // 2 + 5:])) / max_val)
+        tmp = abs((np.average(data[key][:len(data[key]) // 2 - 5]) - np.average(data[key][len(data[key]) // 2 + 5:])) / max_val)
         sim_sum[sim-1] = sim_sum[sim-1] if abs(sim_sum[sim-1]) > abs(tmp) else tmp
 
     #for i, key in enumerate(plt_keys):
