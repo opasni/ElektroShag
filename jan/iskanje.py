@@ -2,6 +2,7 @@ import numpy as np
 from branje import branje
 import re
 
+
 def iskanje2(x):
     data = branje(x)
     maks = 0
@@ -17,41 +18,50 @@ def iskanje2(x):
 
     return maks, cas
 
-def iskanje(x, N = 50, tol = 0.02):
+
+def iskanje(x, n=100, tol=5):
     data = branje(x)
-    maks = 0
-    cas = 0
-    mov_avgs = []
-    cumsum = [0]
-    vsota = np.zeros(len(data['Time']))
+    frekvenca = np.zeros(len(data['Time']))
     regex_vzorec = ["N.*_r"]
-    
+
     for i, vzorec in enumerate(regex_vzorec):
         reg = re.compile(vzorec)
         keys = list(filter(reg.match, data.keys()))
-        for j in range(len(vsota)):
+        for j in range(len(frekvenca)):
             for key in keys:
-                vsota[j] = vsota[j] + data[key][j]
+                frekvenca[j] = frekvenca[j] + data[key][j]
 
-    arr = []
-    cumsum = [0]
-    mov_avgs = []
-    i = 1
-    
+    new_data = dict()
+    i = 0
+    mov_avg = 0
+    aktiven_dogodek = 0
+
     while True:
-        cumsum.append(cumsum[i - 1] + vsota[i - 1])
-        if i >= N:
-            mov_avg = (cumsum[i] - cumsum[i - N] / N
-            mov_avgs.append(mov_avg)
-            if vsota[i + 1] > mov_avg and abs(vsota[i + 1] - mov_avg) > tol:
-                aktiven_dogodek = True
-                       # zacetek spikea, zacne delat array
-            if vsota[i + 1] < mov_avg and abs(vsota[i + 1] - mov_avg) > tol:
-                aktiven_dogodek = True
-                       # po vrhu, array se dela naprej
-            if abs(vsota[i + 1] - mov_avg) < tol and aktiven_dogodek = True:
-                aktiven_dogodek = False
-                return arr
-        i = i + 1
-            
+        if i >= n:
+            mov_avg += (frekvenca[i] - frekvenca[i - n]) / n
+            stdev = np.std(frekvenca[i - n: i])
+            if aktiven_dogodek >= n / 2:
+                aktiven_dogodek = 0
+                # regex_vzorec = ["N.*_u", "N.*_au", "N.*_i.*", "N.*_ai.*", "N.*_P.*", "N.*_Q.*", "N.*_f", "N.*_r"]
+                # for k, vzorec in enumerate(regex_vzorec):
+                #     reg = re.compile(vzorec)
+                #     keys = list(filter(reg.match, data.keys()))
+                for key in data.keys():
+                    new_data[key] = []
+                    for j in range(i - 1 - n, i - 1):
+                        new_data[key].append(data[key][j])
+                i += 1
+#                print(i)
+                yield new_data
+                continue
+            elif aktiven_dogodek > 0:
+                aktiven_dogodek += 1
+            elif abs(frekvenca[i + 1] - mov_avg) > tol * stdev and aktiven_dogodek == 0:
+                aktiven_dogodek = 1
 
+        else:
+            mov_avg += frekvenca[i] / n
+
+        i += 1
+        if i >= len(data['Time']) - 1: break
+        yield 0

@@ -4,7 +4,7 @@ from datetime import datetime
 
 def branje(x):
     arr = []
-    ime = "../Data/Simul/Sim" + str(x) + ".csv"
+    ime = "../Data/" + x + ".csv"
     with open(ime) as dat_f:
         reader = csv.DictReader(dat_f, delimiter=";")
         for row in reader:
@@ -13,14 +13,19 @@ def branje(x):
     data = dict()
     time_arr = []
     for key in arr[0]:
-         data[key] = np.zeros(len(arr))
+        if key == 'Time':
+            data[key] = []
+        else:
+            data[key] = np.zeros(len(arr))
 
-    for i,line in enumerate(arr):
+    for i, line in enumerate(arr):
         for key in arr[0]:
             if key == 'Time':
-                time_arr.append(datetime.strptime(line[key], '%Y-%m-%d %H:%M:%S.%f'))
+                data[key].append(datetime.strptime(line[key], '%Y-%m-%d %H:%M:%S.%f'))
             else:
-                data[key][i] = float(line[key])
-    
-    
+                try:
+                    data[key][i] = float(line[key])
+                except:
+                    None
+
     return data
