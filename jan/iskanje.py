@@ -68,7 +68,8 @@ class iskanje():
             if key not in self.data:
                 self.data[key] = []
             self.data[key].append(x[key])
-        if self.deriv == False:
+        # odvaja frekvenco, ce ni v podatkih
+        if self.deriv is False and len(self.data['Time']) >= 3:
             regex_vzorec = ["N.*_f"]
             for i, vzorec in enumerate(regex_vzorec):
                 reg = re.compile(vzorec)
@@ -83,7 +84,7 @@ class iskanje():
             reg = re.compile(vzorec)
             keys = list(filter(reg.match, self.data.keys()))
             for key in keys:
-                self.vsota += self.data[key][-1]
+                self.vsota += self.data[key][-2]
             self.frekvenca.append(self.vsota)
 
         if len(self.data['Time']) > self.n + 2:
