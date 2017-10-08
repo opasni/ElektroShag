@@ -256,6 +256,10 @@ class Frame_plots(tk.Frame):
             node_x_green =  []
             node_y_green =  []
 
+            self.text.config(state='normal')
+            self.text.insert('1.0', 'Detected event, Short circuit: '+str(self.data.is_short)+'\n')
+            self.text.config(state='disabled')
+
 
             print('its happening', self.data.best_points)
             
@@ -298,7 +302,7 @@ def Test_row():
         yield (0.02*i, np.sin(0.02*i)+ 1, np.cos(0.02*i)+ 2, event)
         i += 1
 
-def is_short_circut(test_data, center_cut=5):
+def is_short_circuit(test_data, center_cut=5):
     vzorec_P = "N.*_P"
     reg_P = re.compile(vzorec_P)
     plt_keys_P = list(filter(reg_P.match, test_data.keys()))
@@ -380,12 +384,15 @@ def Generator_row():
             t1 = t1.second + t1.microsecond/1000000
             #print(t1)
 
+            is_short= False
+
             if flag:
                 best_points = get_best_bets(data)
+                is_short = is_short_circuit(data)
             else:
                 best_points = False
                 
-            yield [t1] + [data[k][0] for k in plt_keys_r] + [flag] + [best_points]
+            yield [t1] + [data[k][0] for k in plt_keys_r] + [is_short] +  [flag] + [best_points]
             #print(row)
             continue
 
@@ -447,6 +454,7 @@ class Realtime_data():
         if row[-1]:
             self.counting = True
             self.best_points = row[-1]
+            self.is_short = row[-3]
 
         if self.counting:
             self.best_count +=1
