@@ -29,14 +29,14 @@ reg_r = re.compile("N.*_f")
 reg_P = re.compile("N.*_P")
 
 sim = 5
-datafile = "../Data/Simul/Sim4.csv"
-# datafile = "../Data/Real/RealMeasurement9.csv"
+#datafile = "../Data/Simul/Sim2.csv"
+datafile = "../Data/Real/RealMeasurement4.csv"
 data = dict()
 
 with open(datafile) as dat_f:
     reader = csv.DictReader(dat_f, delimiter=";")
 
-    iskalnik = iskanje(deriv=False, tol=20)
+    iskalnik = iskanje(deriv=True, tol=10)
     next(reader)
     next(reader)
     next(reader)

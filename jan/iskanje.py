@@ -64,7 +64,7 @@ class iskanje():
     def send_row(self, x):
         self.vsota = 0
         # doda nov element
-        for key in self.data.keys():
+        for key in x.keys():
             if key not in self.data:
                 self.data[key] = []
             self.data[key].append(x[key])
