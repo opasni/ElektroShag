@@ -1,0 +1,362 @@
+#######################################
+# Gui program for reat time analysis of power grid data
+# created by Nejc Jansa
+# nejc0jansa@gmail.com
+# document creation 14.11.2016
+#######################################
+
+# necessary imports
+import numpy as np
+import matplotlib
+import csv
+import gc
+### now using matplotlib 2.0.0
+import matplotlib.pyplot as plt
+matplotlib.use('TkAgg') # sets tkinter to be the backend of matplotlib
+
+#matplotlib canvas and plot edit toolbar
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
+# implement the default mpl key bindings
+from matplotlib.backend_bases import key_press_handler
+
+# (Tkinter for Python 3)
+import tkinter as tk
+from tkinter import ttk
+from tkinter import messagebox
+
+
+
+#colorbrewer nice plot colot set
+colors = ['#e41a1c','#377eb8','#4daf4a','#984ea3','#ff7f00','#ffff33','#a65628','#f781bf','#999999',
+          '#e41a1c','#377eb8','#4daf4a','#984ea3','#ff7f00','#ffff33','#a65628','#f781bf','#999999',
+          '#e41a1c','#377eb8','#4daf4a','#984ea3','#ff7f00','#ffff33','#a65628','#f781bf','#999999']
+
+#set some global settings for plots
+plot_font = {'family': 'Calibri', 'size': '12'}
+matplotlib.rc('font', **plot_font)  # make the font settings global for all plots
+
+
+class Frame_plots(tk.Frame):
+    '''Leftmost frame with selection of experiment'''
+    def __init__(self, parent):
+        '''makes the subframe and fills it up'''
+        tk.Frame.__init__(self, parent, bd=5)
+        self.pack(side='top', anchor='n',fill='x')
+
+        #reference to parent
+        self.parent = parent
+
+        #start realtime data
+        self.data = Realtime_data()
+
+        #load widgets
+        self.Widgets()
+
+        #initiate plots
+        self.Initiate_plots()
+
+        self.test_row = Test_row()
+
+        #loop variable
+        self.run = tk.BooleanVar(master=self, value=False)
+
+
+
+    def Widgets(self):
+        '''Puts all the widgets on the frame'''
+
+        self.frame_top = tk.Frame(self)
+        self.frame_top.pack(side='top', anchor='n',fill='x')
+        self.frame_bottom = tk.Frame(self)
+        self.frame_bottom.pack(side='top', anchor='n', fill='x')
+
+
+        ## top side
+        self.frame_left = tk.Frame(self.frame_top)
+        self.frame_right = tk.Frame(self.frame_top)
+        self.frame_left.pack(side='left', fill='both', expand=True)
+        self.frame_right.pack(side='right', fill='both', expand=True)
+
+        #left top plot
+        self.fig_left = plt.figure(dpi=100, figsize=(7,5))
+        self.fig_left.subplots_adjust(bottom=0.20, left= 0.14, right=0.96, top=0.88)
+        self.canvas_left = FigureCanvasTkAgg(self.fig_left, self.frame_left)
+        #self.toolbar = NavigationToolbar2TkAgg(self.canvas_left, self.frame_left)
+        self.canvas_left._tkcanvas.pack()
+
+        #right top plot ###change into canvas
+        self.fig_right = plt.figure(dpi=100, figsize=(7,5))
+        self.fig_right.subplots_adjust(bottom=0.20, left= 0.14, right=0.96, top=0.88)
+        self.canvas_right = FigureCanvasTkAgg(self.fig_right, self.frame_right)
+        #self.toolbar = NavigationToolbar2TkAgg(self.canvas_right, self.frame_right)
+        self.canvas_right._tkcanvas.pack()
+
+
+        #bottom side
+        self.frame_left2 = tk.Frame(self.frame_bottom)
+        self.frame_right2 = tk.Frame(self.frame_bottom)
+        self.frame_left2.pack(side='left', anchor='n')
+        self.frame_right2.pack(side='right')
+        
+        #add button to go to previous frame
+##        self.button_previous = ttk.Button(self.frame_left, text='<<', command=self.Previous)
+##        self.button_previous.pack(side='left')
+##        self.button_previous.bind('<Left>', self.Previous)
+
+        self.button_play = ttk.Button(self.frame_left2, text='Play', command=self.Play)
+        self.button_play.pack(side='left')
+        self.button_play.bind('<space>', self.Play)
+
+        self.button_pause = ttk.Button(self.frame_left2, text='Pause', command=self.Pause)
+        self.button_pause.pack(side='left')
+
+        self.button_next = ttk.Button(self.frame_left2, text='Next', command=self.Next)
+        self.button_next.pack(side='left')
+        self.button_next.bind('<Right>', self.Next)
+
+        #right frame, displayed messages
+        self.text = tk.Text(self.frame_right2, state='disabled', width=100, height=8)
+        self.text.pack(side='top')
+
+        
+    def Initiate_plots(self):
+        '''Initiates the style of the plots'''
+
+        #left plot   
+        self.axes_left = self.fig_left.add_subplot(111)
+
+        #add all frequency traces
+        self.axes_left_traces = dict()
+        self.axes_left_vlines = []
+        n_freq = 5
+        
+        for i, key in enumerate(self.data.freq_keys):
+            tmp, = self.axes_left.plot(self.data.time, self.data.freqs[key], 'bo-',
+                                       color=colors[i+1], label='Trace '+str(key))
+            self.axes_left_traces[key] = tmp
+
+        #self.axes_left_vline = self.axes_left.axvline(0, color=colors[0])
+
+        self.axes_left.set_title('Real time data')
+        self.axes_left.set_xlabel('Time')
+        self.axes_left.set_ylabel('Frequency')
+        self.axes_left.legend(loc='upper right')
+        self.axes_left.grid()
+
+        node_x_list = [0, 1.2540515319837704, 0.5288312603004189, 1.0411901607163858, 0.5457178787504438,
+                         0.5902887279491432, 0.4220574562932663, 0.2560843325238992, 0.6995186823392411,
+                         0.4900493444312738, 0.40451087449142953, 0.6059094449017457, 0.27170194401129866,
+                         0.2706088644285869, 0.7856860252817126]
+        node_y_list = [ 0, 0.6571637827807346, 0.5808117208177156, 0.7910209256532237, 0.5385482082552953,
+                          0.5732009954175707, 0.541657779723429, 0.33544637004135164, 0.5293526234142677,
+                          0.3072025303353594, 0.5220564078231058, 0.5239893971710619, 0.2370571592126064,
+                          0.236624300551497, 0.5323674295136915]
+
+        node_x_red = []
+        node_y_red = []
+        node_x_green =  [0, 1.2540515319837704, 0.5288312603004189, 1.0411901607163858, 0.5457178787504438,
+                         0.5902887279491432, 0.4220574562932663, 0.2560843325238992, 0.6995186823392411,
+                         0.4900493444312738, 0.40451087449142953, 0.6059094449017457, 0.27170194401129866,
+                         0.2706088644285869, 0.7856860252817126]
+        node_y_green =  [ 0, 0.6571637827807346, 0.5808117208177156, 0.7910209256532237, 0.5385482082552953,
+                          0.5732009954175707, 0.541657779723429, 0.33544637004135164, 0.5293526234142677,
+                          0.3072025303353594, 0.5220564078231058, 0.5239893971710619, 0.2370571592126064,
+                          0.236624300551497, 0.5323674295136915]
+        node_name = []
+        for i in range(len(node_x_green)):
+            node_name.append('N'+str(i+1))
+
+        #right plot   ### change into node map graphics
+        self.axes_right = self.fig_right.add_subplot(111)
+        self.axes_right_green = self.axes_right.plot(node_x_green, node_y_green, 'bo',
+                                                   color=colors[2], label='Working')
+        self.axes_right_red = self.axes_right.plot(node_x_red, node_y_red, 'bo',
+                                                   color=colors[0], label='Event')
+
+        for i, name in enumerate(node_name): 
+            self.axes_right.annotate(name, (node_x_green[i], node_y_green[i]+0.012))
+                
+        self.axes_right.set_title('Node map')
+        self.axes_right.get_xaxis().set_visible(False)
+        self.axes_right.get_yaxis().set_visible(False)
+        self.axes_right.legend(loc='lower right')
+
+        self.fig_left.canvas.draw()
+##        self.fig_right.canvas.draw()
+
+
+    def Play(self):
+        '''starts automatic data playing'''
+        self.run.set(True)
+        while self.run.get():
+            self.Next()
+            #start a delay
+            ##### figure out how to run a loop that doesnt freeze main_app!!!!
+            root.after(500)
+
+
+    def Pause(self):
+        '''stops automatic data playing'''
+        self.run.set(False)
+
+    def Next(self):
+        '''takes next time frame and calls all necessary updates'''
+
+        #testrow
+
+
+        self.data.Append_row(next(self.test_row))
+
+        for key in self.data.freq_keys:
+            self.axes_left_traces[key].set_xdata(self.data.time)
+            self.axes_left_traces[key].set_ydata(self.data.freqs[key])
+
+        #update plot limits
+        self.axes_left.relim()
+        self.axes_left.autoscale_view()
+        self.axes_left.set_xlim(self.data.time[0]-0.01, self.data.time[-1]+0.01)
+        
+
+        #add hlines for events
+        if len(self.data.events) > 0:
+            while len(self.data.events) > len(self.axes_left_vlines):
+                self.axes_left_vlines.append(self.axes_left.axvline(0, color=colors[0]))
+                print('born')
+
+            while len(self.data.events) > len(self.axes_left_vlines):
+                #self.axes.left_vlines[-1].destroy()
+                self.axes_left_vlines.pop().destroy()
+                print('destroyed')
+
+        for i, event in enumerate(self.data.events):
+            self.axes_left_vlines[i].set_xdata(event)
+
+        
+
+        self.fig_left.canvas.draw()
+
+def Test_row():
+    '''a test row to check plotting'''
+    i = 0
+    while True:
+        event = True if i%13 == 0 else False
+        print(event)
+        yield (0.02*i, np.sin(0.02*i)+ 1, np.cos(0.02*i)+ 2, event)
+        i += 1
+
+
+class Realtime_data():
+    '''class that keeps track of the plotted data and updates it from new rows'''
+    def __init__(self):
+        '''initializes class, prepares arrays and dictionaries'''
+
+        #indexes / keys of data in imported row
+        self.time_key = 0
+        self.freq_keys = [1, 2]
+
+        #number of points to keep in plot
+        self.n_max = 20
+        dt = 0.02
+
+        #init lists of data, start with negative times for empty traces in plot
+        self.time = [-self.n_max*dt + (i+1)*dt for i in range(self.n_max)]
+        self.freqs = dict()
+        for key in self.freq_keys:
+            self.freqs[key] = [0 for i in range(self.n_max)]
+
+        #init list of events
+        self.events = []
+
+    def Append_row(self, row, event=False):
+        '''reads a row and correctly adds it to current arrays'''
+
+        if type(row[-1]) == type(True):
+            event = row[-1]
+                 
+        # adds the new data to row
+        self.time.append(row[self.time_key])
+        for key in self.freq_keys:
+            self.freqs[key].append(row[key])
+
+
+        #handles events for vline
+        if event:
+            self.events.append(self.time[-1])
+
+        #remove first entries
+        outdate = self.time.pop(0)
+        for key in self.freq_keys:
+            self.freqs[key].pop(0)
+        try:
+            if self.events[0] <= outdate:
+                self.events.pop(0)
+        except IndexError: pass
+        
+
+##        #in case row is full remove first entry
+##        if len(self.time) == self.n_max:
+##            outdate = self.time.pop(0)
+##            
+##            for key in self.freq_keys:
+##                self.freqs[key].pop()
+##
+##            if events[0] <= outdate:
+##                events.pop(0)
+
+
+
+
+
+class Main_application(tk.Frame):
+    '''Main application calling all the sub frames'''
+    def __init__(self, parent, *args, **kwargs):
+        '''Initializes the main application as a frame in tkinter'''
+        tk.Frame.__init__(self, parent, height=1020, width =1720, *args, **kwargs)
+        self.parent = parent
+        # sets the window title
+        self.parent.wm_title('Real time data presentation')
+        #sets the window minimal size
+        self.parent.minsize(width=1200, height=800)
+        # allow editing the exit command
+        self.parent.protocol('WM_DELETE_WINDOW', self.On_close)
+        #makes the window strechable
+        self.pack(fill='both', expand=True)
+
+      
+        #calls subframes and packs them
+        self.Sub_frames()
+    def Sub_frames(self):
+        '''Creates all the subframes'''
+        #first, plot row
+        self.plots = Frame_plots(self)
+
+        #second, button and display  row
+        #self.control = Frame_control(self)
+
+
+
+    def On_close(self):
+        '''Actions to execute when the master window is closed with ('X')'''
+        msg = 'Are you sure you want to terminate the program?'
+        if tk.messagebox.askokcancel('Quit', msg):
+            #close all plots and figures
+            plt.close('all')
+            self.parent.destroy()
+
+
+        
+def Error_incomplete():
+    '''Lets user know that the content doesnt exist yet'''
+    tk.messagebox.showerror('Error', 'The function is not yet implemented!')
+    
+
+if __name__ == '__main__':
+    '''Initializes tkinter and main application if this is a standalone file'''
+    root = tk.Tk()
+    Main_application(root)
+    root.mainloop()
+    
+
+
+
+            
