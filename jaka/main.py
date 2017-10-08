@@ -4,69 +4,49 @@ from datetime import datetime
 import numpy as np
 import re
 
+
+def is_short_circut(test_data, center_cut=5):
+    vzorec_P = "N.*_P"
+    reg_P = re.compile(vzorec_P)
+    plt_keys_P = list(filter(reg_P.match, test_data.keys()))
+
+    max_val = 0
+    for key_P in plt_keys_P:
+        key_max = np.max(abs(test_data[key_P] - test_data[key_P][0]))
+        max_val = max_val if key_max < max_val else key_max
+
+    max_diff = 0
+    for i, key_P in enumerate(plt_keys_P):
+        center = len(test_data[key_P])//2
+        tmp = abs(np.average(test_data[key_P][:center - center_cut]) - np.average(test_data[key_P][center + center_cut:])) / max_val
+        max_diff = max_diff if max_diff > tmp else tmp
+    
+    return max_diff < 0.5
+
+
+vzorec = "N.*_P"
+reg = re.compile(vzorec)
+
 sim = 5
 datafile = "../Data/Simul/Sim5.csv"
 data = dict()
 with open(datafile) as dat_f:
     reader = csv.DictReader(dat_f, delimiter=";")
-    num_cols = sum(1 for r in reader)
-    print("num", num_cols)
-    dat_f.seek(0)
-    reader = csv.DictReader(dat_f, delimiter=";")
 
-    time_arr = []
-    row_idx = 0
+    #iskalnik = janova_koda()
     for row in reader:
-        print(row_idx)
-        for key in row:
-            if key not in data:
-                data[key] = np.full(num_cols, np.nan)
+        iskalnik.send_row(row)
+        data = next(iskalnik)
 
-            if key == "Time":
-                time_arr.append(datetime.strptime(row[key], '%Y-%m-%d %H:%M:%S.%f'))
-            else:
-                data[key][row_idx] = row[key]
+        plt_keys = list(filter(reg.match, data.keys()))
+        if data != 0:
+            for key in plt_keys:
+                plt.plot_date(data["Time"], (data[key]), '-', label=key)
 
-        row_idx += 1
+            plt.title(datafile)
+            plt.legend()
+            plt.show()
 
-# data = dict()
-# time_arr = []
-# for key in arr[0]:
-#     data[key] = np.zeros(len(arr))
+            print("Short circut: ", is_short_circut(data))
 
-# for i,line in enumerate(arr):
-#     for key in arr[0]:
-#         if key == 'Time':
-#             time_arr.append(datetime.strptime(line[key], '%Y-%m-%d %H:%M:%S.%f'))
-#         else:
-#             data[key][i] = float(line[key])
-
-
-# plt.format_xdata = mdates.DateFormatter('%Y-%m-%d %h-%m-%s.%')
-
-# plt_keys = ["N1_au", "N2_au", "N10_au", "N15_au"]
-
-
-# regex_vzorec = ["N.*_u", "N.*_au", "N.*_r", "N.*_P.*", "N.*_Q.*"]
-regex_vzorec = ["N.*_P"]
-# regex_vzorec = ["N.*_u", "N.*_au", "N.*_i.*", "N.*_ai.*", "N.*_P.*", "N.*_Q.*", "N.*_f", "N.*_r"]
-for i, vzorec in enumerate(regex_vzorec):
-    reg = re.compile(vzorec)
-
-    plt_keys = list(filter(reg.match, data.keys()))
-
-    max_val = 0
-    for key in plt_keys:
-        max_val = max_val if np.max(abs(data[key]-data[key][10])) < max_val else np.max(abs(data[key]-data[key][10]))
-
-    plt.figure(i)
-    for key in plt_keys:
-        #plt.plot_date(time_arr, (data[key]-data[key][10])/max_val, '-', label=key)
-        plt.plot_date(time_arr, (data[key]), '-', label=key)
-        # plt.plot_date(time_arr, data[key], '-', label=key)
-
-
-plt.title("sim" + str(sim))
-plt.legend()
-
-plt.show()
+            
