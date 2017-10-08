@@ -20,7 +20,6 @@ for si, sim in enumerate(sorted(pp + pl)):
     plt_keys = list(filter(reg.match, data.keys()))
     # plt_keys = sorted(plt_keys, key=lambda x: int(re.findall(r'\d+', x)[0]))
 
-    # TODO to je jeba!!!
     data_sum = np.zeros(99)  # len(data["Time"]))
 
     for key in plt_keys:
