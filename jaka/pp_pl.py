@@ -30,9 +30,10 @@ for si, sim in enumerate(sorted(pp + pl)):
     avgr = abs(np.average(data_sum[len(data_sum) // 2 + 5:]))
     sim_sum[si] = abs(avgl - avgr) / max(avgl, avgr)
 
-plt.bar(range(1, 14), sim_sum)
+for i in range(1, 4):
+    plt.bar(pp[i-1], sim_sum[i-1], color="r")
+for i in range(4, 13):
+    plt.bar(pl[i-4], sim_sum[i-1], color="k")
 plt.xticks(range(1, 14), sorted(pp + pl))
-# plt.title("sim" + str(sim))
-# plt.legend()
 
 plt.show()

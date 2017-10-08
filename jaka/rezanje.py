@@ -1,12 +1,12 @@
 import numpy as np
 import re
 from branje import branje
-from iskanje import iskanje
+from iskanje2 import iskanje2
 
 def rezanje(x):
     data = branje(x)
     delta_t = 1
-    cas_dogodka = iskanje(x)[1]
+    cas_dogodka = iskanje2(x)[1]
     delta_i = delta_t * 50
     i_dogodka = cas_dogodka * 50
     new_data = dict()
