@@ -5,16 +5,13 @@ import numpy as np
 import re
 
 
+sim = 14
 
 arr = []
-
-sim = 17
-
 with open("../Data/Simul/Sim" + str(sim) + ".csv") as dat_f:
     reader = csv.DictReader(dat_f, delimiter=";")
     for row in reader:
         arr.append(row)
-
 
 data = dict()
 time_arr = []
@@ -29,31 +26,24 @@ for i,line in enumerate(arr):
             data[key][i] = float(line[key])
 
 
+vzorec = "N.*_P"
+reg = re.compile(vzorec)
+plt_keys = list(filter(reg.match, data.keys()))
+plt_keys = sorted(plt_keys, key=lambda x: int(re.findall(r'\d+', x)[0]))
 
+max_val = 0
+for key in plt_keys:
+    key_max = np.max(abs(data[key][10:] - data[key][10]))
+    max_val = max_val if key_max < max_val else key_max
 
-# plt.format_xdata = mdates.DateFormatter('%Y-%m-%d %h-%m-%s.%')
+vals = np.zeros(len(plt_keys))
 
-# plt_keys = ["N1_au", "N2_au", "N10_au", "N15_au"]
+for i, key in enumerate(plt_keys):
+    vals[i] = (np.average(data[key][10:510]) - np.average(data[key][-500:]))/max_val
 
-
-# regex_vzorec = ["N.*_u", "N.*_au", "N.*_r", "N.*_P.*", "N.*_Q.*"]
-regex_vzorec = ["N.*_P"]
-# regex_vzorec = ["N.*_u", "N.*_au", "N.*_i.*", "N.*_ai.*", "N.*_P.*", "N.*_Q.*", "N.*_f", "N.*_r"]
-for i, vzorec in enumerate(regex_vzorec):
-    reg = re.compile(vzorec)
-
-    plt_keys = list(filter(reg.match, data.keys()))
-
-    max_val = 0
-    for key in plt_keys:
-        max_val = max_val if np.max(abs(data[key]-data[key][10])) < max_val else np.max(abs(data[key]-data[key][10]))
-
-    plt.figure(i)
-    for key in plt_keys:
-        plt.plot_date(time_arr, (data[key]-data[key][10])/max_val, '-', label=key)
-        # plt.plot_date(time_arr, data[key], '-', label=key)
-
-
+plt.bar(range(len(vals)), vals)
+plt.xticks(range(len(vals)), plt_keys, rotation="vertical")
+print(plt_keys)
 plt.title("sim" + str(sim))
 plt.legend()
 

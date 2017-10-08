@@ -4,8 +4,6 @@ from datetime import datetime
 import numpy as np
 import re
 
-
-
 arr = []
 
 sim = 17
@@ -50,7 +48,8 @@ for i, vzorec in enumerate(regex_vzorec):
 
     plt.figure(i)
     for key in plt_keys:
-        plt.plot_date(time_arr, (data[key]-data[key][10])/max_val, '-', label=key)
+        #plt.plot_date(time_arr, (data[key]-data[key][10])/max_val, '-', label=key)
+        plt.plot_date(time_arr, (data[key]), '-', label=key)
         # plt.plot_date(time_arr, data[key], '-', label=key)
 
 

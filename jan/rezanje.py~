@@ -1,0 +1,3 @@
+import numpy as np
+from branje import branje
+from iskanje import iskanje
