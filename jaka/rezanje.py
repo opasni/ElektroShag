@@ -12,7 +12,7 @@ def rezanje(x):
     new_data = dict()
     
     # regex_vzorec = ["N.*_u", "N.*_au", "N.*_i.*", "N.*_ai.*", "N.*_P.*", "N.*_Q.*", "N.*_f", "N.*_r"]
-    regex_vzorec = ["N.*_P", "N.*i"]
+
     for i, vzorec in enumerate(regex_vzorec):
         reg = re.compile(vzorec)
         keys = list(filter(reg.match, data.keys()))

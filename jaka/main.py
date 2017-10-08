@@ -48,7 +48,7 @@ data = dict()
 with open(datafile) as dat_f:
     reader = csv.DictReader(dat_f, delimiter=";")
 
-    iskalnik = iskanje(deriv=False, tol=20)
+    iskalnik = iskanje(deriv=True, tol=10)
     next(reader)
     next(reader)
     next(reader)
