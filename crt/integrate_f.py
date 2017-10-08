@@ -36,14 +36,14 @@ def get_best_bets(sim):
         
         s = sorted(zip(plt_keys, freq_val), key=lambda x:-x[1])
         # sim_freq_tmp.append(plt_keys[np.argmax(abs(freq_val)])
-        sim_freq_tmp.append([(get_number(x[0], vzorec),x[1]) for x in s[:3]])
+        sim_freq_tmp.append([(get_number(x[0], vzorec)) for x in s[:3]])
     #sim_freq.append(sim_freq_tmp)
     return(sim_freq_tmp)
     
 
 final_data = []
 
-calculate
+#calculate
 
 for sim in range(1,3):
     print (sim)
