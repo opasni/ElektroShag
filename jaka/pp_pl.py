@@ -20,7 +20,6 @@ for si, sim in enumerate(sorted(pp + pl)):
     plt_keys = list(filter(reg.match, data.keys()))
     # plt_keys = sorted(plt_keys, key=lambda x: int(re.findall(r'\d+', x)[0]))
 
-    # TODO to je jeba!!!
     data_sum = np.zeros(99)  # len(data["Time"]))
 
     for key in plt_keys:
@@ -30,9 +29,10 @@ for si, sim in enumerate(sorted(pp + pl)):
     avgr = abs(np.average(data_sum[len(data_sum) // 2 + 5:]))
     sim_sum[si] = abs(avgl - avgr) / max(avgl, avgr)
 
-plt.bar(range(1, 14), sim_sum)
+for i in range(1, 4):
+    plt.bar(pp[i-1], sim_sum[i-1], color="r")
+for i in range(4, 13):
+    plt.bar(pl[i-4], sim_sum[i-1], color="k")
 plt.xticks(range(1, 14), sorted(pp + pl))
-# plt.title("sim" + str(sim))
-# plt.legend()
 
 plt.show()
