@@ -4,29 +4,42 @@ from datetime import datetime
 import numpy as np
 import re
 
-arr = []
-
-sim = 17
-
-with open("../Data/Simul/Sim" + str(sim) + ".csv") as dat_f:
-    reader = csv.DictReader(dat_f, delimiter=";")
-    for row in reader:
-        arr.append(row)
-
-
+sim = 5
+datafile = "../Data/Simul/Sim5.csv"
 data = dict()
-time_arr = []
-for key in arr[0]:
-     data[key] = np.zeros(len(arr))
+with open(datafile) as dat_f:
+    reader = csv.DictReader(dat_f, delimiter=";")
+    num_cols = sum(1 for r in reader)
+    print("num", num_cols)
+    dat_f.seek(0)
+    reader = csv.DictReader(dat_f, delimiter=";")
 
-for i,line in enumerate(arr):
-    for key in arr[0]:
-        if key == 'Time':
-            time_arr.append(datetime.strptime(line[key], '%Y-%m-%d %H:%M:%S.%f'))
-        else:
-            data[key][i] = float(line[key])
+    time_arr = []
+    row_idx = 0
+    for row in reader:
+        print(row_idx)
+        for key in row:
+            if key not in data:
+                data[key] = np.full(num_cols, np.nan)
 
+            if key == "Time":
+                time_arr.append(datetime.strptime(row[key], '%Y-%m-%d %H:%M:%S.%f'))
+            else:
+                data[key][row_idx] = row[key]
 
+        row_idx += 1
+
+# data = dict()
+# time_arr = []
+# for key in arr[0]:
+#     data[key] = np.zeros(len(arr))
+
+# for i,line in enumerate(arr):
+#     for key in arr[0]:
+#         if key == 'Time':
+#             time_arr.append(datetime.strptime(line[key], '%Y-%m-%d %H:%M:%S.%f'))
+#         else:
+#             data[key][i] = float(line[key])
 
 
 # plt.format_xdata = mdates.DateFormatter('%Y-%m-%d %h-%m-%s.%')
